@@ -1,15 +1,19 @@
 const Products = require("../models/product");
 const Cart = require("../models/cart");
 exports.getProducts = function (req, res, next) {
-  Products.fetchAll((products) => {
-    res.render("shop/product-list", {
-      prods: products,
-      pageTitle: "Shop",
-      path: "/products",
-      activeShop: true,
-      productCSS: true,
+  Products.fetchAll()
+    .then(([rows, metaData]) => {
+      res.render("shop/product-list", {
+        prods: rows,
+        pageTitle: "Shop",
+        path: "/products",
+        activeShop: true,
+        productCSS: true,
+      });
+    })
+    .catch((e) => {
+      console.log(e);
     });
-  });
 };
 
 exports.getCart = function (req, res) {
@@ -57,16 +61,15 @@ exports.getCheckout = function (req, res) {
   });
 };
 
-exports.getIndex = function (req, res) {
-  Products.fetchAll((products) => {
-    res.render("shop/index", {
-      prods: products,
-      pageTitle: "Products",
-      path: "/",
-      formsCSS: true,
-      productCSS: true,
-      activeAddProduct: true,
-    });
+exports.getIndex = async function (req, res) {
+  const [rows, metaData] = await Products.fetchAll();
+  res.render("shop/index", {
+    prods: rows,
+    pageTitle: "Products",
+    path: "/",
+    formsCSS: true,
+    productCSS: true,
+    activeAddProduct: true,
   });
 };
 
@@ -82,11 +85,11 @@ exports.getOrders = function (req, res) {
 
 exports.getProduct = function (req, res) {
   const proId = req.params.proId;
-  Products.findById(proId, (product) => {
+  Products.findById(proId).then(([rows, meta]) => {
     res.render("shop/product-detail", {
-      pageTitle: product.title,
+      pageTitle: rows[0].title,
       path: "/products",
-      product,
+      product: rows[0],
       productCSS: true,
     });
   });
